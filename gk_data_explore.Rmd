@@ -1,0 +1,66 @@
+---
+title: "Greenkeeper Data Explore"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Libraries
+```{r}
+library(data.table)
+
+```
+
+## Load data sets
+```{r}
+gk_commits = fread("/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_commits.csv", nThread=20)
+gk_comments = fread("/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_comments.csv", nThread=20)
+gk_events = fread("/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_events.csv", nThread=20)
+gk_issues = fread("/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_issues.csv", nThread=20)
+gk_package_names = fread("/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_package_names.csv", nThread=20)
+
+```
+
+## Commits that reference a Greenkeeper issue
+2,293 Commits
+```{r commits}
+head(gk_commits)
+length(unique(gk_commits$commit_sha))
+```
+
+
+## Issues
+123,197 total issues
+110,512 unique issues
+123,089 issues from greenkeeper[bot]
+``` {r issues}
+head(gk_issues)
+gk_issues_dt = data.table(gk_issues)
+length(unique(gk_issues$issue_id))
+unique(gk_issues_dt$issue_user_login)
+nrow(gk_issues_dt[issue_user_login == "greenkeeper[bot]"])
+```
+
+## Linking issue comments to issues
+Example: https://github.com/jubianchi/semver-check/issues/76
+Issue_id = 614969004
+```{r}
+
+```
+
+```{r}
+
+summary(gk_comments)
+View(gk_comments)
+unique_comments_count = length(unique(gk_comments$comment_id))
+
+summary(gk_events)
+View(gk_events)
+unique_events_count = length(unique(gk_events$event_id))
+closed_event_count = nrow(gk_events[gk_events$event_description == "closed",])
+reopened_event_count = nrow(gk_events[gk_events$event_description == "reopened",])
+
+```
+

@@ -1,0 +1,547 @@
+---
+title: "preliminary_study"
+author: "Filipe Cogo"
+date: "17/08/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = 
+"//home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-scripts")
+```
+
+## Load external scripts
+
+```{r load_external_scripts, echo=FALSE}
+
+source("plotter.R")
+
+```
+
+## Load libraries
+
+```{r load_libraries, include=FALSE, echo=FALSE}
+
+library(data.table)
+library(lubridate)
+library(scales)
+library(ggplot2)
+library(stringr)
+library(effsize)
+
+```
+
+## Read dataset
+
+Reads two different data sets. While `releases` is the data about all package's releases, `dependencies` is the data about the dependencies of each package. Although `dependencies` also stores data about package's releases, any release of a package that has no valid dependency is not present in `dependencies`.
+
+```{r read_data_set, include=FALSE, echo = FALSE}
+
+issues = 
+  fread("../wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/greenkeeper_issues.csv",
+        nThread = 80)
+
+dependencies = 
+  fread("../wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/greenkeeper_dependencies_analysis.csv",
+        nThread = 80)
+
+init_pr = fread("../wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/greenkeeper_first_pull_request.csv",
+                nThread = 80)
+
+package_names =
+  fread("../wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/greenkeeper_package_names.csv",
+        nThread = 80)
+
+print(paste("There are more package names than dependencies,",
+            "since only packages with more than 100 commits",
+            "are considered."))
+
+```
+
+# Link datasets
+
+```{r link_dataset}
+
+
+package_names[, package_id := 
+                str_match(package_gh_url,
+                          "^https://github\\.com/(.*?)/$")[,2]]
+
+init_pr[, init_pr_id := 
+          str_match(pr_repo_url,
+                    "^https://api.github.com/repos/(.*?)$")[,2]]
+
+issues[, issue_id := 
+         str_match(issue_repo_url,
+                    "^https://api.github.com/repos/(.*?)$")[,2]
+         ]
+
+dependencies[, client_name_id := 
+               str_replace(client_name,
+                           "@",
+                           "/")]
+
+```
+
+How often are initial pull requests closed?
+
+```{r}
+
+# get initial pull requests
+num_initial_pr = 
+  nrow(init_pr)
+
+# get closed initial pull requests
+num_closed_initial_pr =
+  nrow(init_pr[pr_state == "closed"])
+
+# report proportion of closed initial pull request
+paste(
+  percent(
+    num_closed_initial_pr / num_initial_pr
+  ), "of the initial pull requests are eventually closed"
+)
+
+```
+
+How much time do initial pull requests take to be closed?
+
+```{r}
+
+# get closed intial pull requests
+closed_initial_pr =
+  init_pr[pr_state == "closed"]
+
+# calculate median time to merge an initial pull request
+time_to_close_initial_pr =
+  closed_initial_pr[,
+                    .(pr_id,
+                      time_to_close_initial_pr =
+                        difftime(ymd_hms(pr_closed_at),
+                                 ymd_hms(pr_created_at),
+                                 units = "hours"))]
+
+# report the median time to close the initial pull request
+paste("The median time to close the initial pull request is",
+      median(as.numeric(time_to_close_initial_pr$time_to_close_initial_pr)),
+             "hours")
+
+# plot the distribution
+ggplot(time_to_close_initial_pr,
+       aes(x = "",
+           y = as.numeric(time_to_close_initial_pr))) +
+  geom_violin(fill = "grey") +
+  geom_boxplot(width = 0.05,
+               fill = "white") +
+  scale_x_discrete(name = "Initial PR") +
+  scale_y_log10(name = "Time to close initial PR (hours)",
+                labels = trans_format("log10", 
+                                      math_format(10^.x))) +
+  theme_classic() +
+  theme(axis.ticks.x = element_blank())
+
+print(paste("Five number summary for the time to close the initual pull request:"))
+summary(as.numeric(time_to_close_initial_pr$time_to_close_initial_pr))
+
+```
+
+What is the proportion of open initial pull requests that are older than the median time to close the initial pull request?
+
+```{r}
+
+# get open initial PR
+open_initial_pr =
+  init_pr[pr_state == "open"]
+
+# get latest date for open initial PR
+latest_pr =
+  max(open_initial_pr$pr_updated_at)
+
+# calculate the life-time of the initial PR
+open_initial_pr[, lifetime := 
+                  difftime(ymd_hms(latest_pr),
+                           ymd_hms(pr_updated_at),
+                           units = "hours")]
+
+# get the median time to close an initial PR
+median_time_to_close_initial_pr =
+  median(as.numeric(time_to_close_initial_pr$time_to_close_initial_pr))
+
+paste(
+  percent(
+    nrow(open_initial_pr) /
+      nrow(open_initial_pr[lifetime > 
+                             median_time_to_close_initial_pr])
+    ), "of the open initial pull request have a lifetime larger than",
+  "the median time to close an initial pull request."
+)
+
+
+```
+
+What is the difference between the time to merge an initial PR and the lifetime of open initial PR?
+
+```{r}
+
+# calculate median time to merge an initial pull request
+time_to_close_initial_pr =
+  closed_initial_pr[,
+                    .(state = "closed",
+                      time =
+                        difftime(ymd_hms(pr_closed_at),
+                                 ymd_hms(pr_created_at),
+                                 units = "hours"))]
+
+# calculate the life-time of the initial PR
+lifetime_open_initial_pr = 
+  open_initial_pr[, .(state = "open",
+                      time = 
+                        difftime(ymd_hms(latest_pr),
+                                 ymd_hms(pr_created_at),
+                                 units = "hours"))]
+
+time_initial_pr.plot =
+  rbind(time_to_close_initial_pr,
+        lifetime_open_initial_pr)
+
+time_initial_pr.plot$time =
+  as.numeric(time_initial_pr.plot$time)
+
+time_initial_pr.plot$state =
+  factor(time_initial_pr.plot$state,
+         levels = c("open",
+                    "closed"),
+         ordered = TRUE)
+time_initial_pr.plot$x = ""
+
+plot_violin(time_initial_pr.plot, 
+            ycol = "time",
+            xcol = "x",
+            group = "state",
+            split = TRUE) +
+  scale_y_log10(name = "Lifetime (hours)",
+                labels = trans_format("log10", 
+                                      math_format(10^.x))) +
+  scale_x_discrete(name = "Initial Pull-Request") +
+  scale_fill_grey(name = "State",
+                  start = 0.7,
+                  end = 1,
+                  breaks = c("closed",
+                             "open"),
+                  labels = c("Closed",
+                             "Open"))+
+  theme_classic()
+
+```
+
+How many dependencies do packages have when they integrate the Greenkeeper bot?
+
+```{r}
+
+# find the releases in which the bot was integrated
+dependencies[, client_time := 
+               ymd_hms(client_timestamp)]
+closed_initial_pr[, initial_pr_time := 
+                    ymd_hms(pr_closed_at)]
+
+setkey(dependencies, 
+       client_name_id,
+       client_time)
+setkey(closed_initial_pr,
+       init_pr_id,
+       initial_pr_time)
+
+releases_initial_pr_was_closed = 
+  dependencies[closed_initial_pr,
+               roll = "nearest"]
+
+releases_initial_pr_was_closed =
+  releases_initial_pr_was_closed[!is.na(client_name)]
+
+# get dependencies in releases in which the bot was integrated
+dependencies_initial_pr_was_closed = 
+  merge(dependencies,
+        releases_initial_pr_was_closed,
+        by.x = c("client_name",
+                 "client_version",
+                 "client_previous_version"),
+        by.y = c("client_name",
+                 "client_version",
+                 "client_previous_version"))
+
+# calculate the number of dependencies
+num_dependencies_initial_pr_was_closed =
+  dependencies_initial_pr_was_closed[, .(num_dependencies = .N),
+                                     by = .(client_name,
+                                            client_previous_version,
+                                            client_version)]
+
+summary(num_dependencies_initial_pr_was_closed$num_dependencies)
+
+# find the releases in which the bot was not integrated
+dependencies[, client_time := 
+               ymd_hms(client_timestamp)]
+open_initial_pr[, initial_pr_time := 
+                    ymd_hms(pr_created_at)]
+
+setkey(dependencies, 
+       client_name_id,
+       client_time)
+setkey(open_initial_pr,
+       init_pr_id,
+       initial_pr_time)
+
+dependencies[client_name_id %in% 
+               unique(init_pr[pr_state == "open"]$init_pr_id),
+             .GRP,
+             by = client_name_id]
+
+releases_initial_pr_is_open = 
+  dependencies[open_initial_pr,
+               roll = "nearest"]
+
+releases_initial_pr_is_open =
+  releases_initial_pr_is_open[!is.na(client_name)]
+
+# get dependencies in releases in which the bot was integrated
+dependencies_initial_pr_is_open = 
+  merge(dependencies,
+        releases_initial_pr_is_open,
+        by.x = c("client_name",
+                 "client_version",
+                 "client_previous_version"),
+        by.y = c("client_name",
+                 "client_version",
+                 "client_previous_version"))
+
+# calculate the number of releases
+num_dependencies_initial_pr_is_open =
+  dependencies_initial_pr_is_open[, .(num_dependencies = .N),
+                                     by = .(client_name,
+                                            client_previous_version,
+                                            client_version)]
+
+summary(num_dependencies_initial_pr_is_open$num_dependencies)
+
+# plot the differences
+
+num_dependencies_initial_pr_is_open[, state := "open"]
+num_dependencies_initial_pr_was_closed[, state := "closed"]
+
+num_dependencies_initial_pr.plot = 
+  rbind(num_dependencies_initial_pr_is_open,
+        num_dependencies_initial_pr_was_closed)
+
+num_dependencies_initial_pr.plot$state =
+  factor(num_dependencies_initial_pr.plot$state,
+         levels = c("open",
+                    "closed"),
+         ordered = TRUE)
+num_dependencies_initial_pr.plot$x = ""
+
+plot_violin(num_dependencies_initial_pr.plot, 
+            ycol = "num_dependencies",
+            xcol = "x",
+            group = "state",
+            trim = FALSE,
+            split = TRUE) +
+  scale_y_log10(name = "Number of dependencies",
+                labels = trans_format("log10", 
+                                      math_format(10^.x))) +
+  scale_x_discrete(name = "Initial Pull-Request") +
+  scale_fill_grey(name = "State",
+                  start = 0.7,
+                  end = 1,
+                  breaks = c("closed",
+                             "open"),
+                  labels = c("Closed",
+                             "Open"))+
+  theme_classic()
+
+wilcox.test(num_dependencies_initial_pr.plot[state == "closed"]$num_dependencies,
+            num_dependencies_initial_pr.plot[state == "open"]$num_dependencies)
+cliff.delta(num_dependencies_initial_pr.plot[state == "closed"]$num_dependencies,
+            num_dependencies_initial_pr.plot[state == "open"]$num_dependencies)
+
+print(paste("There is no evidence that the number of dependencies is",
+            "different between packages that did and did not",
+            "integrate the bot. I.e., the number of dependencies is",
+            "not an important factor to determine whether the bot",
+            "will be integrated or not."))
+```
+
+Do client packages perform more updates after using the bot?
+
+```{r}
+
+# find when the bot was integrated
+closed_initial_pr[, initial_pr_time := 
+                    ymd_hms(pr_closed_at)]
+
+dependencies_before_after_init_pr =
+  merge(dependencies,
+        closed_initial_pr[,.(init_pr_id, 
+                             initial_pr_time)],
+        by.x = "client_name_id",
+        by.y = "init_pr_id")
+
+# flag releases that were published after and before bot integration
+dependencies_before_after_init_pr[, event :=
+                                    ifelse(
+                                      difftime(
+                                        ymd_hms(client_timestamp),
+                                        initial_pr_time) > 0,
+                                      "after_init_pr",
+                                      "before_init_pr")]
+# find number of upgrades in each release
+num_dependencies_before_after_init_pr =
+  dependencies_before_after_init_pr[, .(num_updates = 
+                                          sum(dependency_resolved_version_change == "upgrade"),
+                                        num_dependencies = .N),
+                                    by = .(client_name_id,
+                                           client_version,
+                                           client_previous_version,
+                                           event)]
+
+# calculate proportion of updated dependencies
+num_dependencies_before_after_init_pr[, proportion_updates :=
+                                        num_updates / num_dependencies]
+
+# calculate the median proportion of updated dependencies per package
+num_dependencies_before_after_init_pr.median=
+  num_dependencies_before_after_init_pr[, .(median_proportion_updates = 
+                                              median(proportion_updates)),
+                                        by = .(client_name_id,
+                                               event)]
+
+# plot
+num_dependencies_before_after_init_pr.median$x = ""
+num_dependencies_before_after_init_pr.median$event =
+  factor(num_dependencies_before_after_init_pr.median$event,
+         levels = c("before_init_pr",
+                    "after_init_pr"),
+         ordered = T)
+plot_violin(num_dependencies_before_after_init_pr.median, 
+            ycol = "median_proportion_updates",
+            xcol = "x",
+            group = "event",
+            trim = FALSE,
+            split = TRUE) +
+  scale_y_continuous(trans = "log1p",
+                     name = "Median proportion of updated dependencies",
+                     limits = c(0, 1),
+                     labels = percent) +
+  scale_x_discrete(name = "Client package releases") +
+  scale_fill_grey(name = "Before\nor after\ninitial PR?",
+                  start = 0.7,
+                  end = 1,
+                  breaks = c("before_init_pr",
+                             "after_init_pr"),
+                  labels = c("Before",
+                             "After"))+
+  theme_classic()
+
+summary(num_dependencies_before_after_init_pr.median[event == "before_init_pr"]$median_proportion_updates)
+summary(num_dependencies_before_after_init_pr.median[event == "after_init_pr"]$median_proportion_updates)
+
+median(num_dependencies_before_after_init_pr.median[event == "after_init_pr"]$median_proportion_updates) /
+  median(num_dependencies_before_after_init_pr.median[event == "before_init_pr"]$median_proportion_updates)
+
+wilcox.test(num_dependencies_before_after_init_pr.median[event == "before_init_pr"]$median_proportion_updates,
+            num_dependencies_before_after_init_pr.median[event == "after_init_pr"]$median_proportion_updates)
+cliff.delta(num_dependencies_before_after_init_pr.median[event == "before_init_pr"]$median_proportion_updates,
+            num_dependencies_before_after_init_pr.median[event == "after_init_pr"]$median_proportion_updates)
+
+```
+
+```{r}
+# normalize by number of releases after and before the bot integration
+num_releases_before_after_init_pr =
+  num_dependencies_before_after_init_pr[, .(num_releases = .N),
+                                        by = client_name_id]
+normalized_num_dependencies_before_after_init_pr =
+  merge(num_dependencies_before_after_init_pr,
+        num_releases_before_after_init_pr,
+        by = "client_name_id")
+
+normalized_num_dependencies_before_after_init_pr[, normalized_proportion_updates :=
+                                                   proportion_updates / num_releases]
+
+```
+
+How many releases of the provider are not tracked by the bot?
+
+```{r not_tracked_provider_releases}
+
+# How many providers are not tracked by the bot?
+
+# Get dependencies that are updated at dependency release
+provider_updates_at_dependency_release = 
+  dependencies[dependency_resolved_version_semver %in%
+                 c("major", "minor", "patch") &
+                 dependency_resolved_version_change == "upgrade" &
+                 dependency_resolution_type == "at_dependency_release" &
+                 dependency_resolved_timestamp > "2017-01-01T00:00:00Z"]
+
+# Select only client packages that closed their initial PR
+provider_updates_at_dependency_release =
+  provider_updates_at_dependency_release[client_name_id %in%
+                                           init_pr[pr_state == "closed"]$init_pr_id]
+
+issues[, .(issue_id,
+           issue_dependency_name,
+           issue_dependency_actual_version,
+           issue_dependency_next_version)]
+
+select_packages_with_closed_init_pr =
+  init_pr
+
+percent_tracked_dependencies = 
+  length(intersect(unique(provider_updates_at_dependency_release$dependency_name),
+                   unique(issues$issue_dependency_name))) /
+  length(unique(provider_updates_at_dependency_release$dependency_name))
+
+paste(
+  percent(percent_tracked_dependencies),
+  "of the provider packages have at least ",
+  "one of its releases tracked by the bot."
+)
+
+# How many clients do update the provider without the bot opening an issue?
+updates_tracked_by_bot = 
+  merge(provider_updates_at_dependency_release,
+        issues,
+        by.x = c("client_name_id",
+                 "dependency_name",
+                 "dependency_previous_resolved_version"),
+        by.y = c("issue_id",
+                 "issue_dependency_name",
+                 "issue_dependency_actual_version"))
+
+updated_dependencies_at_dependency_release = 
+  provider_updates_at_dependency_release[dependency_resolved_version_semver %in%
+                                           c("major", "minor", "patch"),
+                                         .GRP,
+                                         by = .(client_name,
+                                                dependency_name,
+                                                dependency_previous_resolved_version)]
+
+percent_tracked_dependency_releases =
+  nrow(updates_tracked_by_bot) /
+  nrow(updated_dependencies_at_dependency_release)
+
+paste(
+  percent(percent_tracked_dependency_releases),
+  "of the provider releases are tracked by the bot."
+)
+
+paste(
+  percent(nrow(updates_tracked_by_bot[issue_state == "closed"]) /
+  nrow(updates_tracked_by_bot)), "of the provider releases tracked",
+  "by the bot are closed."
+)
+
+summary(updates_tracked_by_bot[issue_state == "closed"]$issue_num_comments)
+
+```

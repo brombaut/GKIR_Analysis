@@ -1,0 +1,177 @@
+---
+title: "WS-RQ1"
+author: "Filipe Cogo"
+date: "17/08/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = 
+"/scratch/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-scripts")
+```
+
+## Load external scripts
+
+```{r load_external_scripts, echo=FALSE}
+
+source("plotter.R")
+
+```
+
+## Load libraries
+
+```{r load_libraries, include=FALSE, echo=FALSE}
+
+library(data.table)
+library(lubridate)
+library(scales)
+library(ggplot2)
+library(stringr)
+library(effsize)
+
+```
+
+## Read dataset
+
+Reads two different data sets. While `releases` is the data about all package's releases, `dependencies` is the data about the dependencies of each package. Although `dependencies` also stores data about package's releases, any release of a package that has no valid dependency is not present in `dependencies`.
+
+```{r read_data_set, include=FALSE, echo = FALSE}
+
+issues = 
+  fread("../wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/greenkeeper_issues.csv",
+        nThread = 80)
+
+dependencies = 
+  fread("../wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/greenkeeper_dependencies_analysis.csv",
+        nThread = 80)
+
+init_pr = 
+  fread("../wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/greenkeeper_first_pull_request.csv",
+        nThread = 80)
+
+init_pr_events =
+  fread("../wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/greenkeeper_events_first_pull_request.csv",
+        nThread = 80)
+
+init_pr_commits =
+  fread("../wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/greenkeeper_first_pull_request_commits.csv",
+        nThread = 80)
+
+package_names =
+  fread("../wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/greenkeeper_package_names.csv",
+        nThread = 80)
+
+paste("There are more package names than dependencies,",
+      "since only packages with more than 100 commits",
+      "are considered.")
+
+```
+
+# Link datasets
+
+```{r link_dataset}
+
+
+package_names[, package_id := 
+                str_match(package_gh_url,
+                          "^https://github\\.com/(.*?)/$")[,2]]
+
+init_pr[, init_pr_id := 
+          str_match(pr_repo_url,
+                    "^https://api.github.com/repos/(.*?)$")[,2]]
+
+init_pr_events[, init_pr_event_id :=
+                 str_match(event_issue_url,
+                    "^https://api.github.com/repos/(.*?)/issues/.*?$")[,2]]
+
+init_pr_commits[, commit_event_id := 
+                  str_match(commit_event_url,
+                            "^https://api.github.com/repos/(.*?)/issues/.*?$")[,2]]
+
+issues[, issue_id := 
+         str_match(issue_repo_url,
+                    "^https://api.github.com/repos/(.*?)$")[,2]
+         ]
+
+dependencies[, client_name_id := 
+               str_replace(client_name,
+                           "@",
+                           "/")]
+
+```
+
+How many files are modified in the commits refer to the initial PR?
+
+```{r}
+
+summary(init_pr_commits[, .(num_files = .N),
+                        by = commit_sha]$num_files)
+
+```
+
+What is the size of the commits that refer to the initial PR?
+
+```{r}
+
+summary(init_pr_commits[, .(num_modified_lines = sum(commit_stats_total)),
+                        by = commit_sha]$num_modified_lines)
+
+```
+
+How many initial PRs are merged?
+
+```{r}
+
+init_pr_events_merged =
+  init_pr_events[, .(has_merged = 
+                       ifelse("merged" %in% event_description, T, F)),
+                 by = event_issue_url]
+
+nrow(init_pr_events_merged[has_merged == TRUE]) /
+  nrow(init_pr_events_merged)
+
+```
+
+How many time to merge the initial PR?
+
+```{r}
+
+merged_init_pr = 
+  merge(init_pr,
+        init_pr_events[event_description == "merged"],
+        by.x = "pr_url",
+        by.y = "event_issue_url")
+
+time_to_merge_init_pr = 
+  merged_init_pr[, .(pr_url,
+                     time_to_merge =
+                       difftime(ymd_hms(event_created_at),
+                                ymd_hms(pr_created_at),
+                                unit = "hours"))]
+
+ggplot(time_to_merge_init_pr,
+       aes(x = "",
+           y = as.numeric(time_to_merge))) +
+  geom_violin(fill = "grey") +
+  geom_boxplot(fill = "white",
+               width = 0.05) +
+  scale_y_log10(name = "Time to merge (hours)",
+                labels = trans_format("log10",
+                                      math_format(10^.x))) +
+  scale_x_discrete(name = "Merged initial pull-requests") +
+  theme_classic() +
+  theme(axis.ticks.x = element_blank())
+
+```
+
+Does the initial pull request require a merge conflict to be resolved?
+
+```{r}
+
+View(merge(init_pr,
+           init_pr_events,
+           by.x = "pr_id",
+           by.y = "event_issue_id"))
+
+```
