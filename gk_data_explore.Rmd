@@ -7,42 +7,94 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Load Libraries
+## Load Libraries, Functions & Data
 ```{r}
 library(data.table)
 
+commits_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_commits.csv"
+comments_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_comments.csv"
+events_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_events.csv"
+issues_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_issues.csv"
+pack_names_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_package_names.csv"
+
+commits <- fread(commits_file, nThread=20)
+comments <- fread(comments_file, nThread=20)
+events <- fread(events_file, nThread=20)
+issues <- fread(issues_file, nThread=20)
+package_names <- fread(pack_names_file, nThread=20)
+
+
+split_semver <- function(v) {
+  return (unlist(strsplit(v, "\\.")))
+}
+
+major_versions_are_different <- function(old_v, new_v) {
+  return (as.numeric(split_semver(new_v)[1]) > as.numeric(split_semver(old_v)[1]))
+}
+
+minor_versions_are_different <- function(old_v, new_v) {
+  return (as.numeric(split_semver(new_v)[2]) > as.numeric(split_semver(old_v)[2]))
+}
+
+patch_versions_are_different <- function(old_v, new_v) {
+  return (as.numeric(split_semver(new_v)[3]) > as.numeric(split_semver(old_v)[3]))
+}
 ```
 
-## Load data sets
+
+## General Stats
+- 123,089 Issues opened by Greenkeeper (GKI)
+- 79,079 GKIs with issue_dependency_name, actual_version, and next_version
+- 7 types of issue body parsers on the GKIs
+  - BundleUpdateIssueBodyParser (18,582)
+  - NewDepVersionIssueBodyParser (28,708)
+  - NewDepVersion2IssueBodyParser (5,977)
+  - NewDepVersion3IssueBodyParser (233)
+  - NewDepVersion4IssueBodyParser (3,245)
+  - NewDepUpdatedFromToIssueBodyParser (60,497)
+  - NewDepUpdatedFromTo2IssueBodyParser (61)
 ```{r}
-gk_commits = fread("/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_commits.csv", nThread=20)
-gk_comments = fread("/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_comments.csv", nThread=20)
-gk_events = fread("/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_events.csv", nThread=20)
-gk_issues = fread("/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_issues.csv", nThread=20)
-gk_package_names = fread("/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_package_names.csv", nThread=20)
-
+greenkeeper_login <- "greenkeeper[bot]"
+issues_opened_by_gk <- issues[issue_user_login == greenkeeper_login]
+null_values = c("", "undefined")
+gki_with_dependency <- issues_opened_by_gk[!(issue_dependency_name %in% null_values) & !(issue_dependency_actual_version %in% null_values) & !(issue_dependency_next_version %in% null_values)]
 ```
 
-## Commits that reference a Greenkeeper issue
-2,293 Commits
-```{r commits}
-head(gk_commits)
-length(unique(gk_commits$commit_sha))
+## RQ1: Types of updates (major, minor, patch) that break a client's build
+Of 79,079 GKIs:
+- Major: 122
+- Minor: 27226
+- Patch: 51731
+```{r}
+types_count <- data.frame(matrix(data=c(0, 0, 0), ncol=3, nrow=1))
+x <- c("major", "minor", "patch")
+colnames(types_count) <- x
+for (row in 1:nrow(gki_with_dependency)) {
+  count <- count + 1  
+  curr_v <- gki_with_dependency[row,]$issue_dependency_actual_version
+  next_v <- gki_with_dependency[row,]$issue_dependency_next_version
+  if (major_versions_are_different(curr_v, next_v)) {
+    types_count$major <- types_count$major + 1
+  } else if (minor_versions_are_different(curr_v, next_v)) {
+    types_count$minor <- types_count$minor + 1
+  } else {
+    types_count$patch <- types_count$patch + 1
+  }
+}
+barplot(c(types_count$major, types_count$minor, types_count$patch))
 ```
 
 
-## Issues
-123,197 total issues
-110,512 unique issues
-123,089 issues from greenkeeper[bot]
-117,402 issue that have an 
-``` {r issues}
-head(gk_issues)
-gk_issues[issue_dependency_actual_version != "" & issue_dependency_next_version != ""]
-issues_with_both_deps_version = gk_issues[issue_dependency_actual_version != "" & issue_dependency_next_version != ""]
-head(issues_with_both_deps_version)
-names(gk_issues)
+## What packages cause the most breakages?
+```{r}
+ghi_with_dependency_name = issues_opened_by_gk[!(issue_dependency_name %in% null_values)]
+packages_count = data.table(as.data.frame(table(ghi_with_dependency_name$issue_dependency_name)))
+first_ten = head(packages_count[order(-Freq)], 20)
+
+barplot(first_ten$Freq, names.arg=first_ten$Var1, horiz=FALSE, cex.names=0.8, main="Most Frequent Breaking Packages",las=2)
 ```
+
+
 
 ## Linking issue comments to issues
 Example: https://github.com/jubianchi/semver-check/issues/76
