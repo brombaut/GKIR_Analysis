@@ -35,32 +35,26 @@ length(unique(gk_commits$commit_sha))
 123,197 total issues
 110,512 unique issues
 123,089 issues from greenkeeper[bot]
+117,402 issue that have an 
 ``` {r issues}
 head(gk_issues)
-gk_issues_dt = data.table(gk_issues)
-length(unique(gk_issues$issue_id))
-unique(gk_issues_dt$issue_user_login)
-nrow(gk_issues_dt[issue_user_login == "greenkeeper[bot]"])
+gk_issues[issue_dependency_actual_version != "" & issue_dependency_next_version != ""]
+issues_with_both_deps_version = gk_issues[issue_dependency_actual_version != "" & issue_dependency_next_version != ""]
+head(issues_with_both_deps_version)
+names(gk_issues)
 ```
 
 ## Linking issue comments to issues
 Example: https://github.com/jubianchi/semver-check/issues/76
 Issue_id = 614969004
 ```{r}
+issue = gk_issues[issue_id == 614969004]
+issue
+comments_for_issue = gk_comments[comment_issue_id == issue$issue_id]
 
+names(gk_events)
+events_for_issue = gk_events[event_issue_id == issue$issue_id]
 ```
 
-```{r}
 
-summary(gk_comments)
-View(gk_comments)
-unique_comments_count = length(unique(gk_comments$comment_id))
-
-summary(gk_events)
-View(gk_events)
-unique_events_count = length(unique(gk_events$event_id))
-closed_event_count = nrow(gk_events[gk_events$event_description == "closed",])
-reopened_event_count = nrow(gk_events[gk_events$event_description == "reopened",])
-
-```
 
