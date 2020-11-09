@@ -54,10 +54,14 @@ patch_versions_are_different <- function(old_v, new_v) {
   - NewDepUpdatedFromToIssueBodyParser (60,497)
   - NewDepUpdatedFromTo2IssueBodyParser (61)
 ```{r}
-greenkeeper_login <- "greenkeeper[bot]"
-issues_opened_by_gk <- issues[issue_user_login == greenkeeper_login]
-null_values = c("", "undefined")
-gki_with_dependency <- issues_opened_by_gk[!(issue_dependency_name %in% null_values) & !(issue_dependency_actual_version %in% null_values) & !(issue_dependency_next_version %in% null_values)]
+greenkeeper_login <- 
+  "greenkeeper[bot]"
+issues_opened_by_gk <- 
+  issues[issue_user_login == greenkeeper_login]
+null_values <- 
+  c("", "undefined")
+gki_with_dependency <- 
+  issues_opened_by_gk[!(issue_dependency_name %in% null_values) & !(issue_dependency_actual_version %in% null_values) & !(issue_dependency_next_version %in% null_values)]
 ```
 
 ## RQ1: Types of updates (major, minor, patch) that break a client's build
@@ -66,32 +70,61 @@ Of 79,079 GKIs:
 - Minor: 27226
 - Patch: 51731
 ```{r}
-types_count <- data.frame(matrix(data=c(0, 0, 0), ncol=3, nrow=1))
-x <- c("major", "minor", "patch")
-colnames(types_count) <- x
-for (row in 1:nrow(gki_with_dependency)) {
-  count <- count + 1  
-  curr_v <- gki_with_dependency[row,]$issue_dependency_actual_version
-  next_v <- gki_with_dependency[row,]$issue_dependency_next_version
+
+get_update_type <- function(row) {
+  curr_v <- row['issue_dependency_actual_version']
+  next_v <- row['issue_dependency_next_version']
   if (major_versions_are_different(curr_v, next_v)) {
-    types_count$major <- types_count$major + 1
+    return("major")
   } else if (minor_versions_are_different(curr_v, next_v)) {
-    types_count$minor <- types_count$minor + 1
+    return("minor")
   } else {
-    types_count$patch <- types_count$patch + 1
+    return("patch")
   }
 }
-barplot(c(types_count$major, types_count$minor, types_count$patch))
+update_type <- apply(gki_with_dependency, 1, get_update_type)
+gki_with_dependency <- cbind(gki_with_dependency, update_type)
+gki_with_dependency$update_type <- factor(gki_with_dependency$update_type)
+```
+### Plot frequency of types of breaking updates
+```{r}
+freqs <- table(gki_with_dependency$update_type)
+## Make the freqs numbers (rather than factors)
+freqs <- as.numeric(as.character(freqs))
+## Find a range of y's that'll leave sufficient space above the tallest bar
+ylim <- c(0, 1.1*max(freqs))
+## Plot and store
+bp <- barplot(
+  height=freqs,
+  ylim=ylim,
+  col=rgb(0.8, 0.1, 0.1, 0.5),
+  xlab="Update Type",
+  ylab="Count",
+  main="Counts of Breaking Update Types"
+)
+text(x=bp, y=freqs, label=freqs, pos=3, cex=0.8, col="red")
 ```
 
 
-## What packages cause the most breakages?
+### What packages cause the most breakages?
 ```{r}
 ghi_with_dependency_name = issues_opened_by_gk[!(issue_dependency_name %in% null_values)]
 packages_count = data.table(as.data.frame(table(ghi_with_dependency_name$issue_dependency_name)))
-first_ten = head(packages_count[order(-Freq)], 20)
+first_ten = head(packages_count[order(-Freq)], 10)
+ylim <- c(0, 1.1*max(first_ten$Freq))
+bp <- barplot(
+  first_ten$Freq,
+  ylim=ylim,
+  col=rgb(0.0, 0.2, 0.8, 0.5),
+  names.arg=first_ten$Var1, 
+  horiz=FALSE, 
+  cex.names=0.8, 
+  main="Most Frequent Breaking Packages",
+  ylab="Times Package Broke a Client's Build",
+  las=2
+)
+text(x=bp, y=first_ten$Freq, label=first_ten$Freq, pos=3, cex=0.7, col=rgb(0.0, 0.1, 0.9, 0.9))
 
-barplot(first_ten$Freq, names.arg=first_ten$Var1, horiz=FALSE, cex.names=0.8, main="Most Frequent Breaking Packages",las=2)
 ```
 
 
