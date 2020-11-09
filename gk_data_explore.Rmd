@@ -94,15 +94,18 @@ freqs <- as.numeric(as.character(freqs))
 ## Find a range of y's that'll leave sufficient space above the tallest bar
 ylim <- c(0, 1.1*max(freqs))
 ## Plot and store
+# png("plots/breaking_update_type_counts.png")
 bp <- barplot(
   height=freqs,
   ylim=ylim,
   col=rgb(0.8, 0.1, 0.1, 0.5),
   xlab="Update Type",
+  names.arg=c("major", "minor", "patch"), 
   ylab="Count",
   main="Counts of Breaking Update Types"
 )
 text(x=bp, y=freqs, label=freqs, pos=3, cex=0.8, col="red")
+# dev.off()
 ```
 
 
@@ -112,6 +115,7 @@ ghi_with_dependency_name = issues_opened_by_gk[!(issue_dependency_name %in% null
 packages_count = data.table(as.data.frame(table(ghi_with_dependency_name$issue_dependency_name)))
 first_ten = head(packages_count[order(-Freq)], 10)
 ylim <- c(0, 1.1*max(first_ten$Freq))
+# png("plots/most_frequent_breaking_provider_packages.png")
 bp <- barplot(
   first_ten$Freq,
   ylim=ylim,
@@ -124,7 +128,7 @@ bp <- barplot(
   las=2
 )
 text(x=bp, y=first_ten$Freq, label=first_ten$Freq, pos=3, cex=0.7, col=rgb(0.0, 0.1, 0.9, 0.9))
-
+# dev.off()
 ```
 
 
