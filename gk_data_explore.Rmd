@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Load Libraries, Functions & Data
 ```{r}
 library(data.table)
+library(dplyr)
+library(lubridate)
 
 commits_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_commits.csv"
 comments_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_comments.csv"
@@ -39,6 +41,18 @@ minor_versions_are_different <- function(old_v, new_v) {
 patch_versions_are_different <- function(old_v, new_v) {
   return (as.numeric(split_semver(new_v)[3]) > as.numeric(split_semver(old_v)[3]))
 }
+
+get_update_type <- function(row) {
+  curr_v <- row['issue_dependency_actual_version']
+  next_v <- row['issue_dependency_next_version']
+  if (major_versions_are_different(curr_v, next_v)) {
+    return("major")
+  } else if (minor_versions_are_different(curr_v, next_v)) {
+    return("minor")
+  } else {
+    return("patch")
+  }
+}
 ```
 
 
@@ -56,12 +70,12 @@ patch_versions_are_different <- function(old_v, new_v) {
 ```{r}
 greenkeeper_login <- 
   "greenkeeper[bot]"
-issues_opened_by_gk <- 
+gki <- 
   issues[issue_user_login == greenkeeper_login]
 null_values <- 
   c("", "undefined")
 gki_with_dependency <- 
-  issues_opened_by_gk[!(issue_dependency_name %in% null_values) & !(issue_dependency_actual_version %in% null_values) & !(issue_dependency_next_version %in% null_values)]
+  gki[!(issue_dependency_name %in% null_values) & !(issue_dependency_actual_version %in% null_values) & !(issue_dependency_next_version %in% null_values)]
 ```
 
 ## RQ1: Types of updates (major, minor, patch) that break a client's build
@@ -70,18 +84,6 @@ Of 79,079 GKIs:
 - Minor: 27226
 - Patch: 51731
 ```{r}
-
-get_update_type <- function(row) {
-  curr_v <- row['issue_dependency_actual_version']
-  next_v <- row['issue_dependency_next_version']
-  if (major_versions_are_different(curr_v, next_v)) {
-    return("major")
-  } else if (minor_versions_are_different(curr_v, next_v)) {
-    return("minor")
-  } else {
-    return("patch")
-  }
-}
 update_type <- apply(gki_with_dependency, 1, get_update_type)
 gki_with_dependency <- cbind(gki_with_dependency, update_type)
 gki_with_dependency$update_type <- factor(gki_with_dependency$update_type)
@@ -108,10 +110,9 @@ text(x=bp, y=freqs, label=freqs, pos=3, cex=0.8, col="red")
 # dev.off()
 ```
 
-
 ### What packages cause the most breakages?
 ```{r}
-ghi_with_dependency_name = issues_opened_by_gk[!(issue_dependency_name %in% null_values)]
+ghi_with_dependency_name = gki[!(issue_dependency_name %in% null_values)]
 packages_count = data.table(as.data.frame(table(ghi_with_dependency_name$issue_dependency_name)))
 first_ten = head(packages_count[order(-Freq)], 10)
 ylim <- c(0, 1.1*max(first_ten$Freq))
@@ -132,6 +133,98 @@ text(x=bp, y=first_ten$Freq, label=first_ten$Freq, pos=3, cex=0.7, col=rgb(0.0, 
 ```
 
 
+### How many issues per day/week/month are opened by the bot?
+#### Day of Week
+```{r}
+gki.created_at <- gki[,'issue_created_at']
+
+gki.created_at %>% 
+  group_by(day_of_week=as.POSIXlt(issue_created_at)$wday) %>% 
+  tally() ->
+  day_of_week_issues
+
+# png("plots/breaking_updates_day_of_week.png")
+barplot(height=day_of_week_issues$n,
+  main="Day of Week Issues Opened by Greeneeper",
+  xlab="",
+  ylab="Issues",
+  col="lightgreen",
+  names.arg=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"),
+  cex.names=0.8,
+  las=1
+)
+# dev.off()
+```
+
+#### Day of Month
+```{r}
+gki.created_at %>% 
+  group_by(day_of_month=as.POSIXlt(issue_created_at)$mday) %>% 
+  tally() ->
+  day_of_month_issues
+
+# png("plots/breaking_updates_day_of_month.png")
+barplot(height=day_of_month_issues$n,
+  main="Day of Month Issues Opened by Greeneeper",
+  xlab="",
+  ylab="Issues",
+  col="forestgreen",
+  names.arg=seq(1, 31),
+  cex.names=0.8,
+  las=1
+)
+# dev.off()
+```
+
+#### Week
+```{r}
+gki.created_at %>% 
+  group_by(week=floor_date(issue_created_at, "week")) %>% 
+  tally() ->
+  weekly_issues
+
+# png("plots/breaking_updates_opened_per_week.png")
+barplot(height=weekly_issues$n,
+  main="Weekly Issues Opened by Greeneeper",
+  xlab="",
+  ylab="Issues",
+  col="deepskyblue",
+  names.arg=weekly_issues$week,
+  cex.names=0.9,
+  las=2
+)
+# dev.off()
+
+```
+
+#### Month
+```{r}
+gki.created_at %>% 
+  group_by(month=format(floor_date(issue_created_at, "month"), "%Y-%m")) %>% 
+  tally() ->
+  monthly_issues
+
+# png("plots/breaking_updates_opened_per_month.png")
+barplot(height=monthly_issues$n,
+  main="Monthly Issues Opened by Greeneeper",
+  xlab="",
+  ylab="Issues",
+  col="darkmagenta",
+  names.arg=monthly_issues$month,
+  cex.names=0.9,
+  las=2
+)
+# dev.off()
+```
+
+#### Year
+```{r}
+gki.created_at %>% 
+  group_by(year=floor_date(issue_created_at, "year")) %>% 
+  tally() ->
+  yearly_issues
+
+```
 
 ## Linking issue comments to issues
 Example: https://github.com/jubianchi/semver-check/issues/76
