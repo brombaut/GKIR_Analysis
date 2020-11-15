@@ -5,56 +5,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+source("gk_load_data.R")
 ```
-
-## Load Libraries, Functions & Data
-```{r}
-library(data.table)
-library(dplyr)
-library(lubridate)
-
-commits_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_commits.csv"
-comments_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_comments.csv"
-events_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_events.csv"
-issues_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_issues.csv"
-pack_names_file <- "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2020-09-08/greenkeeper_package_names.csv"
-
-commits <- fread(commits_file, nThread=20)
-comments <- fread(comments_file, nThread=20)
-events <- fread(events_file, nThread=20)
-issues <- fread(issues_file, nThread=20)
-package_names <- fread(pack_names_file, nThread=20)
-
-
-split_semver <- function(v) {
-  return (unlist(strsplit(v, "\\.")))
-}
-
-major_versions_are_different <- function(old_v, new_v) {
-  return (as.numeric(split_semver(new_v)[1]) > as.numeric(split_semver(old_v)[1]))
-}
-
-minor_versions_are_different <- function(old_v, new_v) {
-  return (as.numeric(split_semver(new_v)[2]) > as.numeric(split_semver(old_v)[2]))
-}
-
-patch_versions_are_different <- function(old_v, new_v) {
-  return (as.numeric(split_semver(new_v)[3]) > as.numeric(split_semver(old_v)[3]))
-}
-
-get_update_type <- function(row) {
-  curr_v <- row['issue_dependency_actual_version']
-  next_v <- row['issue_dependency_next_version']
-  if (major_versions_are_different(curr_v, next_v)) {
-    return("major")
-  } else if (minor_versions_are_different(curr_v, next_v)) {
-    return("minor")
-  } else {
-    return("patch")
-  }
-}
-```
-
 
 ## General Stats
 - 123,089 Issues opened by Greenkeeper (GKI)
@@ -67,176 +19,146 @@ get_update_type <- function(row) {
   - NewDepVersion4IssueBodyParser (3,245)
   - NewDepUpdatedFromToIssueBodyParser (60,497)
   - NewDepUpdatedFromTo2IssueBodyParser (61)
-```{r}
-greenkeeper_login <- 
-  "greenkeeper[bot]"
-gki <- 
-  issues[issue_user_login == greenkeeper_login]
-null_values <- 
-  c("", "undefined")
-gki_with_dependency <- 
-  gki[!(issue_dependency_name %in% null_values) & !(issue_dependency_actual_version %in% null_values) & !(issue_dependency_next_version %in% null_values)]
-```
+
 
 ## RQ1: Types of updates (major, minor, patch) that break a client's build
 Of 79,079 GKIs:
 - Major: 122
 - Minor: 27226
 - Patch: 51731
+
+
+How often are Greenkeeper Issues closed?
 ```{r}
-update_type <- apply(gki_with_dependency, 1, get_update_type)
-gki_with_dependency <- cbind(gki_with_dependency, update_type)
-gki_with_dependency$update_type <- factor(gki_with_dependency$update_type)
-```
-### Plot frequency of types of breaking updates
-```{r}
-freqs <- table(gki_with_dependency$update_type)
-## Make the freqs numbers (rather than factors)
-freqs <- as.numeric(as.character(freqs))
-## Find a range of y's that'll leave sufficient space above the tallest bar
-ylim <- c(0, 1.1*max(freqs))
-## Plot and store
-# png("plots/breaking_update_type_counts.png")
-bp <- barplot(
-  height=freqs,
-  ylim=ylim,
-  col=rgb(0.8, 0.1, 0.1, 0.5),
-  xlab="Update Type",
-  names.arg=c("major", "minor", "patch"), 
-  ylab="Count",
-  main="Counts of Breaking Update Types"
+n_issues <- nrow(issues)
+n_closed_issues <- nrow(issues[issue_state == "closed"])
+paste(
+  percent(
+    n_closed_issues / n_issues
+  ), "of Greenkeeper issues are eventually closed"
 )
-text(x=bp, y=freqs, label=freqs, pos=3, cex=0.8, col="red")
-# dev.off()
 ```
 
-### What packages cause the most breakages?
+How much time do Greenkeeper issues take to be closed?
 ```{r}
-ghi_with_dependency_name = gki[!(issue_dependency_name %in% null_values)]
-packages_count = data.table(as.data.frame(table(ghi_with_dependency_name$issue_dependency_name)))
-first_ten = head(packages_count[order(-Freq)], 10)
-ylim <- c(0, 1.1*max(first_ten$Freq))
-# png("plots/most_frequent_breaking_provider_packages.png")
-bp <- barplot(
-  first_ten$Freq,
-  ylim=ylim,
-  col=rgb(0.0, 0.2, 0.8, 0.5),
-  names.arg=first_ten$Var1, 
-  horiz=FALSE, 
-  cex.names=0.8, 
-  main="Most Frequent Breaking Packages",
-  ylab="Times Package Broke a Client's Build",
-  las=2
+closed_issues <- issues[issue_state == "closed"]
+# calculate median time to close issue
+time_to_close_issue <-
+  closed_issues[, 
+                .(issue_id, 
+                  time_to_close_issue=difftime(ymd_hms(issue_closed_at), ymd_hms(issue_created_at), units = "hours"))]
+
+# report the median time to close the issue
+paste("The median time to close the issue is",
+      median(as.numeric(time_to_close_issue$time_to_close_issue)),
+             "hours")
+
+# plot the distribution
+ggplot(time_to_close_issue, aes(x="", y=as.numeric(time_to_close_issue))) +
+  geom_violin(fill="mediumspringgreen") +
+  geom_boxplot(width=0.05, fill="mediumslateblue") +
+  scale_x_discrete(name="Greenkeeper Issue Report") +
+  scale_y_log10(name="Time to close Issue (hours)",
+                labels=trans_format("log10", math_format(10^.x))) +
+  theme_classic() +
+  theme(axis.ticks.x=element_blank())
+
+
+print(paste("Five number summary for the time to close the Greenkeeper issue:"))
+summary(as.numeric(time_to_close_issue$time_to_close_issue))
+```
+
+
+
+What is the proportion of open issues that are older than the median time to close an issue?
+```{r}
+open_issues <-
+  issues[issue_state == "open"]
+
+# get latest date for open issue
+latest_issue <-
+  max(open_issues$issue_updated_at)
+
+# calculate the life-time of the issue
+open_issues[,
+            lifetime := 
+              difftime(ymd_hms(latest_issue),
+                       ymd_hms(issue_updated_at),
+                       units="hours")]
+
+# get the median time to close an issue
+median_time_to_close_issue =
+  median(as.numeric(time_to_close_issue$time_to_close_issue))
+
+paste(
+  percent(
+    nrow(open_issues) / nrow(open_issues[lifetime > median_time_to_close_issue])
+    ), "of the open issues have a lifetime larger than the median time to close an issue."
 )
-text(x=bp, y=first_ten$Freq, label=first_ten$Freq, pos=3, cex=0.7, col=rgb(0.0, 0.1, 0.9, 0.9))
-# dev.off()
 ```
 
-
-### How many issues per day/week/month are opened by the bot?
-#### Day of Week
+How many comments do Greenkeeper Breaking Issues have? How many of these are from Greenkeeper?
 ```{r}
-gki.created_at <- gki[,'issue_created_at']
+library(viridis)
+ggplot(issues, aes(x="", y=issue_num_comments, fill=issue_state)) +
+  geom_violin(width=1.4) +
+  #geom_boxplot(width=0.1, color="grey", alpha=0.2) +
+  scale_x_discrete(name="Greenkeeper Issue Report") +
+  scale_y_log10(oob=scales::squish_infinite, name="Number of Comments", labels=trans_format("log10", math_format(10^.x)))
 
-gki.created_at %>% 
-  group_by(day_of_week=as.POSIXlt(issue_created_at)$wday) %>% 
-  tally() ->
-  day_of_week_issues
+print(paste("Five number summary for the number of comments on Greenkeeper Breakage issues:"))
+summary(as.numeric(issues$issue_num_comments))
 
-# png("plots/breaking_updates_day_of_week.png")
-barplot(height=day_of_week_issues$n,
-  main="Day of Week Issues Opened by Greeneeper",
-  xlab="",
-  ylab="Issues",
-  col="lightgreen",
-  names.arg=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"),
-  cex.names=0.8,
-  las=1
+paste(
+  percent(
+    nrow(comments[comment_user_type == "Bot" & comment_user_login %like% "greenkeeper"]) / nrow(comments)
+    ), "of the comments on breaking issue reports opened by Greenkeeper are from the Greenkeeper bot."
 )
-# dev.off()
 ```
 
-#### Day of Month
+
+
+
+### Random sample of Major Breakages
+93/122 (95% Confidence Level, 5% Confidence Interval)
 ```{r}
-gki.created_at %>% 
-  group_by(day_of_month=as.POSIXlt(issue_created_at)$mday) %>% 
-  tally() ->
-  day_of_month_issues
-
-# png("plots/breaking_updates_day_of_month.png")
-barplot(height=day_of_month_issues$n,
-  main="Day of Month Issues Opened by Greeneeper",
-  xlab="",
-  ylab="Issues",
-  col="forestgreen",
-  names.arg=seq(1, 31),
-  cex.names=0.8,
-  las=1
-)
-# dev.off()
+set.seed(100)
+major_sample = sample_n(gki_with_dependency[update_type == "major"], size=93)
+head(major_sample)
 ```
 
-#### Week
+### Random sample of Minor Breakages
+379/27226 (95% Confidence Level, 5% Confidence Interval)
 ```{r}
-gki.created_at %>% 
-  group_by(week=floor_date(issue_created_at, "week")) %>% 
-  tally() ->
-  weekly_issues
-
-# png("plots/breaking_updates_opened_per_week.png")
-barplot(height=weekly_issues$n,
-  main="Weekly Issues Opened by Greeneeper",
-  xlab="",
-  ylab="Issues",
-  col="deepskyblue",
-  names.arg=weekly_issues$week,
-  cex.names=0.9,
-  las=2
-)
-# dev.off()
-
+set.seed(100)
+minor_sample = sample_n(gki_with_dependency[update_type == "minor"], size=379)
 ```
 
-#### Month
+### Random sample of Patch Breakages
+381/51731 (95% Confidence Level, 5% Confidence Interval)
 ```{r}
-gki.created_at %>% 
-  group_by(month=format(floor_date(issue_created_at, "month"), "%Y-%m")) %>% 
-  tally() ->
-  monthly_issues
-
-# png("plots/breaking_updates_opened_per_month.png")
-barplot(height=monthly_issues$n,
-  main="Monthly Issues Opened by Greeneeper",
-  xlab="",
-  ylab="Issues",
-  col="darkmagenta",
-  names.arg=monthly_issues$month,
-  cex.names=0.9,
-  las=2
-)
-# dev.off()
-```
-
-#### Year
-```{r}
-gki.created_at %>% 
-  group_by(year=floor_date(issue_created_at, "year")) %>% 
-  tally() ->
-  yearly_issues
-
-```
-
-## Linking issue comments to issues
-Example: https://github.com/jubianchi/semver-check/issues/76
-Issue_id = 614969004
-```{r}
-issue = gk_issues[issue_id == 614969004]
-issue
-comments_for_issue = gk_comments[comment_issue_id == issue$issue_id]
-
-names(gk_events)
-events_for_issue = gk_events[event_issue_id == issue$issue_id]
+set.seed(100)
+patch_sample = sample_n(gki_with_dependency[update_type == "patch"], size=381)
+head(patch_sample)
 ```
 
 
+
+```{r link_dataset}
+
+
+package_names[, package_id := 
+                str_match(package_gh_url,
+                          "^https://github\\.com/(.*?)/$")[,2]]
+
+init_pr[, init_pr_id := 
+          str_match(pr_repo_url,
+                    "^https://api.github.com/repos/(.*?)$")[,2]]
+
+issues[, issue_id := 
+         str_match(issue_repo_url,
+                    "^https://api.github.com/repos/(.*?)$")[,2]
+         ]
+
+```
 
