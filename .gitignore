@@ -1,1 +1,4 @@
 .DS_Store
+csv
+.Rhistory
+.ipynb_checkpoints
