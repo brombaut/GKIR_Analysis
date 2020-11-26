@@ -3,6 +3,7 @@ csv
 json
 .Rhistory
 .ipynb_checkpoints
+.idea
 
 ~$*
 
