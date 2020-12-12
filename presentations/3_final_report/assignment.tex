@@ -1,0 +1,82 @@
+\documentclass[10pt, conference]{IEEEtran}
+\usepackage[english]{babel}
+\usepackage[usenames]{color}
+\usepackage{colortbl}
+\usepackage{comment}
+\usepackage{graphicx}
+\usepackage{epsfig}
+\usepackage{array, colortbl}
+\usepackage{listings}
+\usepackage{epstopdf}
+\usepackage{multirow}
+\usepackage{rotating}
+%\usepackage{subfigure}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage[obeyspaces,hyphens,spaces]{url}
+\usepackage{balance}
+\usepackage{fancybox}
+\usepackage{scalefnt}
+\usepackage[normalem]{ulem}
+%\pagestyle{plain}
+\pagenumbering{arabic}
+\pagestyle{empty}
+\clubpenalty = 10000
+\widowpenalty = 10000
+\displaywidowpenalty = 10000
+\usepackage{cleveref}
+
+\makeatletter
+\renewcommand{\paragraph}[1]{\noindent\textsf{#1}.}
+
+\title{Our Title}
+\author{John Doe$^{1}$, Jane Doe$^{2}$
+    \\
+    \emph{$^{1}$ Dep. of Computer Science and Engineering, Aalto University, Finland}
+    \\
+    \emph{$^{3}$ Dep. of Computer Science, Lund University, Sweden}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam nibh nisi, ultricies a placerat id, pharetra quis arcu. Donec ut rhoncus odio, in luctus turpis. Praesent in tellus in tellus volutpat sagittis non in felis. Praesent commodo, nisl ac ornare porta, quam libero consectetur mi, sed facilisis elit enim non ipsum. Ut consequat eros id ultricies iaculis. Ut pellentesque rhoncus neque. Integer vestibulum ac diam vitae faucibus. Sed sit amet viverra enim. Suspendisse eu nulla vel turpis auctor posuere sit amet non metus.
+\end{abstract}
+
+
+\section{Introduction}
+\label{sec:introduction}
+
+Brief intro about problem and why this replication is important.
+
+
+\section{Approach}
+\label{sec:approach}
+
+Explain how you reimplemented the original paper's approach, difficulties you found and (in case of uncertainty) which decisions you had to take to make things work. Also don't forget to discuss the characteristics of the new data set and how you filtered it before starting your analysis.
+
+You can cite papers like this~\cite{humble10}.
+
+
+\section{Results}
+\label{sec:results}
+
+Present the results for the original paper's RQs on the new data set.
+
+
+\section{Comparison of Results}
+\label{sec:comparison-results}
+
+Second most important section of a replication study, in which the results are compared to the original study's results to understand whether the original approach generalizes to the new data set, and, if not, why? Go deeper than just "values are different'', i.e., why would that be the case? What other case study should one do to validate your explanation?
+
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Sed ullamcorper augue a lectus mollis gravida. Aliquam in commodo tortor, eget dignissim velit. Phasellus suscipit felis non nisl consequat, quis tempus sapien volutpat. Pellentesque a sagittis lectus. Nunc quis pulvinar velit, quis auctor nisl. In sed erat lectus. Vivamus eget justo et urna consequat consequat. Praesent id nisl odio. Vestibulum aliquam sit amet risus vel pretium. Aenean blandit diam at sem vulputate, sed lobortis magna vulputate. Curabitur nisi velit, tempor ut elit non, aliquet tristique sem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Vestibulum quis sollicitudin libero.
+
+
+\balance
+\bibliographystyle{IEEEtran}
+\bibliography{assignment.bib}
+\end{document}
