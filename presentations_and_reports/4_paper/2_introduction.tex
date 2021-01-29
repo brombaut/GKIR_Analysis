@@ -1,0 +1,24 @@
+%describe why it is important to analyze the proposed research project
+Today's software systems are large and complex. They are rarely built from scratch, and it is commonplace for developers to leverage others' code that has been built in the past to facilitate code reuse. Prior research shows that code reuse is related to the improvement of developers productivity, software quality, and time-to-market of software products \cite{FSE2017_Abdalkareem_WhyUseTrivialPackages} \cite{ESE2020_Abdalkareem_ImpactOfUsingTrivialPackages}. However, this often comes at an increased cost of having to manage these dependencies \cite{ACM2017_Mirhosseini_AutomatedPullRequests}.
+\par
+Greenkeeper\footnote{https://greenkeeper.io/} is a popular automated dependency management tool that GitHub\footnote{https://github.com/} and npm\footnote{https://www.npmjs.com/} users can integrate into their projects. Each time one of their dependencies releases a new version, Greenkeeper opens a new branch with that update. If the repositories continuous integration pipeline fails with the new dependency version and the dependency release is an in-range update, Greenkeeper will open up an issue report in the client’s repository with information stating which dependency update caused the problem.
+\par
+These in-range updates that break client's builds should not be overlooked. Semantic versioning\footnote{https://semver.org/} works so that clients can specify a range of versions they would like to be able to use from a provider. This is done so that they can automatically receive simple bug fixes and patch updates as the provider releases them. If Greenkeeper is opening an issue report for an in-range update that is breaking a client's build, it means that if a user of the client's package were to download and install the package after the dependency has released their in-range update, or even  simply try to update the dependencies on the client's project, it would fail to build. Therefore, it is expected that there would be a certain level of urgency from practitioners when they receive these issue reports.
+\par
+In our study, we examine these in-range breaking build issues to determine characteristics that cause these build failures, as well as how client’s respond to these issues and how they resolve their build. Specifically, we investigate the following research questions: 
+\begin{itemize}
+    \item \rqone
+    \item \rqtwo
+    \item \rqthree
+\end{itemize}
+\par
+%describe your contributions and finding if applied
+%describe the structure of the paper (follow any reference paper mentioned in class)
+The remainder of this paper is structured as follows. 
+We start by describing the background information in Section~\ref{sec:background}. 
+% Section ~\ref{sec:approach} provides an overview of the study design. 
+Section~\ref{sec:data} discusses the data set we used for the study. 
+Section~\ref{sec:results} presents the results of our research questions. 
+Section~\ref{sec:threats} presents the threats to validity of our study.
+The related work is presented in Section~\ref{sec:relatedwork}. 
+Finally, Section~\ref{sec:conclusion} draws conclusions and discusses future work.
