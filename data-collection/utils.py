@@ -57,6 +57,7 @@ def write_one_line_to_existing_csv(output_file_path, headers, line_dict):
 def write_lines_to_new_csv(output_file_path, headers, dicts_to_write):
     with open(output_file_path, 'w') as csv_file:
         writer = csv.DictWriter(csv_file, headers)
+        writer.writeheader()
         for line in dicts_to_write:
             writer.writerow(line)
 
