@@ -29,12 +29,13 @@ def main():
     utils.create_csv_file_if_necessary(OUTPUT_FILE_PATH, COMMENTS_FIELD_NAMES)
     print("Finding files to parse that match {} in {}".format(FILE_NAME_SEARCH_STRING, SEARCH_DIR_PATH))
     files_to_parse = utils.get_list_of_unread_files(SEARCH_DIR_PATH, FILE_NAME_SEARCH_STRING)
-    print("Found {} files".format(len(files_to_parse)))
+    total = len(files_to_parse)
+    print("Found {} files".format(total))
     count = 0
     for ftp in files_to_parse:
         try:
             count += 1
-            print("{}: Parsing + writing {}".format(count, ftp))
+            print("{}/{}: Parsing + writing {}".format(count, total, ftp))
             comments = utils.load_json_file(ftp)
             issue_id, repo_name = parse_issue_id_and_repo_name_from_file_name(ftp)
             lines_to_write = list()

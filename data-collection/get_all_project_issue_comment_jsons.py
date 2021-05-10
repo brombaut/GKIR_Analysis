@@ -31,17 +31,17 @@ def main():
     print("Getting all comments for issues...")
     total = len(issues)
     count = 0
+    print('Skipping thru read ones...')
     for issue in issues:
         try:
+            count += 1
             issue_id = issue['id']
             repo_name = issue['repo_name']
             comments_url = issue['comments_url']
-            count += 1
-            print("\t{}/{} repo={}".format(count, total, repo_name))
             output_file_name = "{}/comments@issue@{}@{}.json".format(OUTPUT_FOLDER_PATH, issue_id, repo_name.replace('/', '@'))
             if utils.file_or_read_file_already_exists(output_file_name):
-                print("File Exists - Continuing")
                 continue
+            print("\t{}/{} repo={}".format(count, total, repo_name))
             issue_comments = get_comments(comments_url)
             utils.write_to_json_file(output_file_name, issue_comments)
         except Exception as e:
