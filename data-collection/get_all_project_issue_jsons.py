@@ -12,10 +12,11 @@ USE_DEBUG_CONFIG = False
 PROJECT_PATH = os.getenv('PROJECT_ROOT_PATH')
 GITHUB_ACCESS_TOKEN = os.getenv('GITHUB_ACCESS_TOKEN')
 
-REPO_CSV_FILE = 'raw_repo_names.csv'
+REPO_CSV_FILE = 'package_dependents.csv'
 REPOS_FILE_PATH = "{}/csv/{}".format(PROJECT_PATH, REPO_CSV_FILE)
 REPOs_FILED_NAMES = [
-    "repo"
+    'repo_name',
+    'dependent',
 ]
 
 OUTPUT_FOLDER_PATH = "{}/json/issues".format(PROJECT_PATH)
@@ -32,7 +33,7 @@ def main():
     count = 0
     for repo in repos:
         try:
-            repo_name = repo['repo']
+            repo_name = repo['dependent']
             count += 1
             print("\t{}/{} repo={}".format(count, total, repo_name))
             output_file_name = "{}/issues@{}.json".format(OUTPUT_FOLDER_PATH, repo_name.replace('/', '@'))
