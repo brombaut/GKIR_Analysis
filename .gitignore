@@ -4,7 +4,7 @@ json
 .Rhistory
 .ipynb_checkpoints
 .idea
-repo-cloning/repos/*
+repo-cloning/repos
 
 ~$*
 
