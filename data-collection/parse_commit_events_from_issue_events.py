@@ -1,0 +1,65 @@
+import os
+import utils
+from dotenv import load_dotenv
+
+load_dotenv()
+
+PROJECT_PATH = os.getenv('PROJECT_ROOT_PATH')
+LIBRARIES_IO_ACCESS_TOKEN = os.getenv('LIBRARIES_IO_ACCESS_TOKEN')
+
+SEARCH_DIR_PATH = "{}/json/issue_events".format(PROJECT_PATH)
+FILE_NAME_SEARCH_STRING = "*.json"
+OUTPUT_FILE_PATH = "{}/csv/non_gkirbbi_issue_commit_events.csv".format(PROJECT_PATH)
+OUTPUT_FILE_FIELD_NAMES = [
+    'event_id',
+    'issue_id',
+    'repo_name',
+    'event_type',
+    'commit_id',
+    'commit_url',
+]
+
+
+def main():
+    utils.create_csv_file_if_necessary(OUTPUT_FILE_PATH, OUTPUT_FILE_FIELD_NAMES)
+    print("Finding files to parse that match {} in {}".format(FILE_NAME_SEARCH_STRING, SEARCH_DIR_PATH))
+    files_to_parse = utils.get_list_of_unread_files(SEARCH_DIR_PATH, FILE_NAME_SEARCH_STRING)
+    total = len(files_to_parse)
+    print("Found {} files".format(total))
+    count = 0
+    for ftp in files_to_parse:
+        try:
+            count += 1
+            print("{}/{}: Parsing + writing {}".format(count, total, ftp))
+            issue_events = utils.load_json_file(ftp)
+            issue_id, repo_name = parse_issue_id_and_repo_name_from_file_name(ftp)
+            lines_to_write = list()
+            for e in issue_events:
+                if e['commit_id'] is None:
+                    continue
+                lines_to_write.append({
+                    'event_id': e['id'],
+                    'issue_id': issue_id,
+                    'repo_name': repo_name,
+                    'event_type': e['event'],
+                    'commit_id': e['commit_id'],
+                    'commit_url': e['commit_url'],
+                })
+            utils.write_lines_to_existing_csv(OUTPUT_FILE_PATH, OUTPUT_FILE_FIELD_NAMES, lines_to_write)
+            utils.mark_file_as_read(ftp)
+        except Exception as e:
+            print("[ERROR] on file {}. Continuing from next file.".format(ftp))
+    print("DONE")
+
+
+def parse_issue_id_and_repo_name_from_file_name(json_issue_file_path):
+    file_name = os.path.splitext(os.path.basename(json_issue_file_path))[0]
+    split_name = file_name.split('@')
+    # issue_events@issue@{issue_id}@{org}@{repo}.json
+    issue_id = split_name[2]
+    repo_name = f'{split_name[3]}/{split_name[4]}'
+    return issue_id, repo_name
+
+
+if __name__ == "__main__":
+    main()

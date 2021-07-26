@@ -7,9 +7,13 @@ load_dotenv()
 PROJECT_PATH = os.getenv('PROJECT_ROOT_PATH')
 LIBRARIES_IO_ACCESS_TOKEN = os.getenv('LIBRARIES_IO_ACCESS_TOKEN')
 
-SEARCH_DIR_PATH = "{}/json/commits".format(PROJECT_PATH)
+# SEARCH_DIR_PATH = "{}/json/commits".format(PROJECT_PATH)
+# OUTPUT_FILE_PATH = "{}/csv/bens_collected_issue_commits.csv".format(PROJECT_PATH)
+
+SEARCH_DIR_PATH = "{}/json/commits_from_commit_events".format(PROJECT_PATH)
+OUTPUT_FILE_PATH = "{}/csv/ngkir_bens_collected_issue_commits.csv".format(PROJECT_PATH)
+
 FILE_NAME_SEARCH_STRING = "*.json"
-OUTPUT_FILE_PATH = "{}/csv/bens_collected_issue_commits.csv".format(PROJECT_PATH)
 OUTPUT_FIELD_NAMES = [
     'commit_sha',
     'issue_id',
@@ -98,9 +102,16 @@ def parse_artifacts_from_file_name(file_path):
     file_name = os.path.splitext(os.path.basename(file_path))[0]
     split_name = file_name.split('@')
     # 'commit@a4a263d33871beb1bc66740611a03d960e985a9b@issue@320422390@jstransformers@jstransformer-lodash'
-    commit_sha = split_name[1]
-    issue_id = split_name[3]
-    repo_name = f'{split_name[4]}/{split_name[5]}'
+    # or
+    # commit@da8fb535c9df84f3cd1086f3c8651b5f7ee8989c@showdownjs@showdown
+    if len(split_name) == 6:
+        commit_sha = split_name[1]
+        issue_id = split_name[3]
+        repo_name = f'{split_name[4]}/{split_name[5]}'
+    else:
+        commit_sha = split_name[1]
+        issue_id = None
+        repo_name = f'{split_name[2]}/{split_name[3]}'
     return commit_sha, issue_id, repo_name
 
 

@@ -11,15 +11,18 @@ USE_DEBUG_CONFIG = False
 PROJECT_PATH = os.getenv('PROJECT_ROOT_PATH')
 GITHUB_ACCESS_TOKEN = os.getenv('GITHUB_ACCESS_TOKEN')
 
-INPUT_CSV_FILE = 'to_recollect_commits_for.csv'
+INPUT_CSV_FILE = 'non_gkirbbi_issue_commit_events.csv'
 INPUT_CSV_FILE_PATH = "{}/csv/{}".format(PROJECT_PATH, INPUT_CSV_FILE)
 INPUT_CSV_FILE_FIELD_NAMES = [
-    'repo_name',
+    'event_id',
     'issue_id',
-    'sha',
+    'repo_name',
+    'event_type',
+    'commit_id',
+    'commit_url',
 ]
 
-OUTPUT_FOLDER_PATH = "{}/json/commits".format(PROJECT_PATH)
+OUTPUT_FOLDER_PATH = "{}/json/commits_from_commit_events".format(PROJECT_PATH)
 
 
 def main():
@@ -35,10 +38,10 @@ def main():
         try:
             issue_id = c['issue_id']
             repo_name = c['repo_name']
-            sha = c['sha']
+            sha = c['commit_id']
             count += 1
             print("\t{}/{} sha={}".format(count, total, sha))
-            output_file_name = "{}/commit@{}@issue@{}@{}.json".format(OUTPUT_FOLDER_PATH, sha, issue_id, repo_name.replace('/', '@'))
+            output_file_name = "{}/commit@{}@{}.json".format(OUTPUT_FOLDER_PATH, sha, repo_name.replace('/', '@'))
             if utils.file_or_read_file_already_exists(output_file_name):
                 print("File Exists - Continuing")
                 continue
