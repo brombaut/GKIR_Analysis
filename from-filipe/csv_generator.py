@@ -16,10 +16,11 @@ prefix_date = "2020-09-16"
 start_day = "2020-06-03"
 end_day = datetime.datetime(2016, 10, 20)
 
+MY_GIT_TOKEN = "" # Put your token here
+
 # search_file_path = "/scratch/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/2019-07-14/"
 # search_file_path = "/Users/filipe/Dropbox/wip-19-filipe-npm_greenkeeper_build_failures-data/{}/".format(prefix_date)
 search_file_path = "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/{}/".format(prefix_date)
-
 search_file_path_test = "/home/local/SAIL/filipe-cogo/wip-19-filipe-npm_greenkeeper_build_failures-data/test/"
 
 class GreenkeeperHTMLParser(HTMLParser):
@@ -40,142 +41,138 @@ class NewDepVersionIssueBodyParser(IssueBodyParser):
     def parse_issue_body(self, body):
         regexp = re.compile("\\n?## Version \*\*([\d|\.?]+?-?.*?\+?.*?)\*\* of \[(.+?)\]\(.*?\) [was just published|just got published].*")
         parsed_body = regexp.match(body)
-
-        print(parsed_body.group(0))
-        print(parsed_body.group(1))
-        print(parsed_body.group(2))
-
+        # print(parsed_body.group(0))
+        # print(parsed_body.group(1))
+        # print(parsed_body.group(2))
         # TODO: check if "issue_dependency_type" can be parsed
-        return [{"issue_dependency_name": parsed_body.group(2),
-                 "issue_dependency_type": None,
-                 "issue_dependency_actual_version": parsed_body.group(1),
-                 "issue_dependency_next_version": None,
-                 "issue_dependency_bundle_name": None,
-                 "issue_body_parser": self.__class__.__name__}]
+        return [{
+            "issue_dependency_name": parsed_body.group(2),
+            "issue_dependency_type": None,
+            "issue_dependency_actual_version": parsed_body.group(1),
+            "issue_dependency_next_version": None,
+            "issue_dependency_bundle_name": None,
+            "issue_body_parser": self.__class__.__name__
+        }]
 
 
 class NewDepVersion2IssueBodyParser(IssueBodyParser):
     def parse_issue_body(self, body):
         regexp = re.compile("\\n?## Version \*\*([\d|\.?]+?-?.*?\+?.*?)\*\* of \*\*(.+?)\*\*\(?.*?\)? [was just published|just got published].*")
         parsed_body = regexp.match(body)
-
-        print(parsed_body.group(0))
-        print(parsed_body.group(1))
-        print(parsed_body.group(2))
-
+        # print(parsed_body.group(0))
+        # print(parsed_body.group(1))
+        # print(parsed_body.group(2))
         # TODO: check if "issue_dependency_type" can be parsed
-        return [{"issue_dependency_name": parsed_body.group(2),
-                 "issue_dependency_type": None,
-                 "issue_dependency_actual_version": parsed_body.group(1),
-                 "issue_dependency_next_version": None,
-                 "issue_dependency_bundle_name": None,
-                 "issue_body_parser": self.__class__.__name__}]
+        return [{
+            "issue_dependency_name": parsed_body.group(2),
+            "issue_dependency_type": None,
+            "issue_dependency_actual_version": parsed_body.group(1),
+            "issue_dependency_next_version": None,
+            "issue_dependency_bundle_name": None,
+            "issue_body_parser": self.__class__.__name__
+        }]
 
 
 class NewDepVersion3IssueBodyParser(IssueBodyParser):
     def parse_issue_body(self, body):
         regexp = re.compile("\\n?## Version \*\*([\d|\.?]+?-?.*?\+?.*?)\*\* of the \*\*(.+?)\*\*\(?.*?\)? packages [was just published|just got published].*")
         parsed_body = regexp.match(body)
-
-        print(parsed_body.group(0))
-        print(parsed_body.group(1))
-        print(parsed_body.group(2))
-
+        # print(parsed_body.group(0))
+        # print(parsed_body.group(1))
+        # print(parsed_body.group(2))
         # TODO: check if "issue_dependency_type" can be parsed
-        return [{"issue_dependency_name": parsed_body.group(2),
-                 "issue_dependency_type": None,
-                 "issue_dependency_actual_version": parsed_body.group(1),
-                 "issue_dependency_next_version": None,
-                 "issue_dependency_bundle_name": None,
-                 "issue_body_parser": self.__class__.__name__}]
+        return [{
+            "issue_dependency_name": parsed_body.group(2),
+            "issue_dependency_type": None,
+            "issue_dependency_actual_version": parsed_body.group(1),
+            "issue_dependency_next_version": None,
+            "issue_dependency_bundle_name": None,
+            "issue_body_parser": self.__class__.__name__
+        }]
 
 class NewDepVersion4IssueBodyParser(IssueBodyParser):
     def parse_issue_body(self, body):
         regexp = re.compile("^.*## Version \*\*([\d|\.?]+?-?.*?\+?.*?)\*\* of \[(.+?)\]\(.*?\) [was just published|just got published].*", flags=re.U | re.DOTALL)
         parsed_body = regexp.match(body)
-
-        print(parsed_body.group(0))
-        print(parsed_body.group(1))
-        print(parsed_body.group(2))
-
+        # print(parsed_body.group(0))
+        # print(parsed_body.group(1))
+        # print(parsed_body.group(2))
         # TODO: check if "issue_dependency_type" can be parsed
-        return [{"issue_dependency_name": parsed_body.group(2),
-                 "issue_dependency_type": None,
-                 "issue_dependency_actual_version": parsed_body.group(1),
-                 "issue_dependency_next_version": None,
-                 "issue_dependency_bundle_name": None,
-                 "issue_body_parser": self.__class__.__name__}]
+        return [{
+            "issue_dependency_name": parsed_body.group(2),
+            "issue_dependency_type": None,
+            "issue_dependency_actual_version": parsed_body.group(1),
+            "issue_dependency_next_version": None,
+            "issue_dependency_bundle_name": None,
+            "issue_body_parser": self.__class__.__name__
+        }]
 
 class NewDepVersion5IssueBodyParser(IssueBodyParser):
     def parse_issue_body(self, body):
         regexp = re.compile("Version ([\d|\.?]+?-?.*?\+?.*?) of (.+?) [was just published|just got published].*")
         parsed_body = regexp.match(body)
-
-        print(parsed_body.group(0))
-        print(parsed_body.group(1))
-        print(parsed_body.group(2))
-
+        # print(parsed_body.group(0))
+        # print(parsed_body.group(1))
+        # print(parsed_body.group(2))
         # TODO: check if "issue_dependency_type" can be parsed
-        return [{"issue_dependency_name": parsed_body.group(2),
-                 "issue_dependency_type": None,
-                 "issue_dependency_actual_version": parsed_body.group(1),
-                 "issue_dependency_next_version": None,
-                 "issue_dependency_bundle_name": None,
-                 "issue_body_parser": self.__class__.__name__}]
+        return [{
+            "issue_dependency_name": parsed_body.group(2),
+            "issue_dependency_type": None,
+            "issue_dependency_actual_version": parsed_body.group(1),
+            "issue_dependency_next_version": None,
+            "issue_dependency_bundle_name": None,
+            "issue_body_parser": self.__class__.__name__
+        }]
 
 class NewDepUpdatedFromToIssueBodyParser(IssueBodyParser):
     def parse_issue_body(self, body):
         regexp = re.compile("\\n## The ([a-zA-Z]+?) \[(.+?)\]\(.*?\) was updated from `([\d|\.?]+?-?.*?\+?.*?)` to `([\d|\.?]+?-?.*?\+?.*?)`.*")
         parsed_body = regexp.match(body)
-
-        print(parsed_body.group(0))
-        print(parsed_body.group(1))
-        print(parsed_body.group(2))
-        print(parsed_body.group(3))
-        print(parsed_body.group(4))
-
+        # print(parsed_body.group(0))
+        # print(parsed_body.group(1))
+        # print(parsed_body.group(2))
+        # print(parsed_body.group(3))
+        # print(parsed_body.group(4))
         # TODO: check if "issue_dependency_type" can be parsed
-        return [{"issue_dependency_name": parsed_body.group(2),
-                 "issue_dependency_type": parsed_body.group(1),
-                 "issue_dependency_actual_version": parsed_body.group(3),
-                 "issue_dependency_next_version": parsed_body.group(4),
-                 "issue_dependency_bundle_name": None,
-                 "issue_body_parser": self.__class__.__name__}]
+        return [{
+            "issue_dependency_name": parsed_body.group(2),
+            "issue_dependency_type": parsed_body.group(1),
+            "issue_dependency_actual_version": parsed_body.group(3),
+            "issue_dependency_next_version": parsed_body.group(4),
+            "issue_dependency_bundle_name": None,
+            "issue_body_parser": self.__class__.__name__
+        }]
 
 class NewDepUpdatedFromTo2IssueBodyParser(IssueBodyParser):
     def parse_issue_body(self, body):
         regexp = re.compile("\\n## The ([a-zA-Z]+?) \[(.+?)\]\(.*?\) was updated from `(undefined)` to `([\d|\.?]+?-?.*?\+?.*?)`.*")
         parsed_body = regexp.match(body)
-
-        print(parsed_body.group(0))
-        print(parsed_body.group(1))
-        print(parsed_body.group(2))
-        print(parsed_body.group(3))
-        print(parsed_body.group(4))
-
+        # print(parsed_body.group(0))
+        # print(parsed_body.group(1))
+        # print(parsed_body.group(2))
+        # print(parsed_body.group(3))
+        # print(parsed_body.group(4))
         # TODO: check if "issue_dependency_type" can be parsed
-        return [{"issue_dependency_name": parsed_body.group(2),
-                 "issue_dependency_type": parsed_body.group(1),
-                 "issue_dependency_actual_version": parsed_body.group(3),
-                 "issue_dependency_next_version": parsed_body.group(4),
-                 "issue_dependency_bundle_name": None,
-                 "issue_body_parser": self.__class__.__name__}]
+        return [{
+            "issue_dependency_name": parsed_body.group(2),
+            "issue_dependency_type": parsed_body.group(1),
+            "issue_dependency_actual_version": parsed_body.group(3),
+            "issue_dependency_next_version": parsed_body.group(4),
+            "issue_dependency_bundle_name": None,
+            "issue_body_parser": self.__class__.__name__
+        }]
 
 class BundleUpdateIssueBodyParser(IssueBodyParser):
     def parse_issue_body(self, body):
         #regexp = re.compile("\\n## There have been updates to the \*(.*?)\* monorepo:\\n\\n \+ (\- The ([a-zA-Z]+?) \[(.+?)\]\(.+?\) was updated from `([\d|\.?]+?-?.*?\+?.*?)` to `([\d|\.?]+?-?.*?\+?.*?)`\.\\n)+?.*?")
-
         regexp = re.compile("\\n## There have been updates to the \*(.*?)\* monorepo:.*")
         parsed_body = regexp.match(body)
-
         monorepo_name = parsed_body.group(1)
         list_of_parsed_body = list()
-
         lines = body.split("\n")
         for line in lines:
             regexp = re.compile(".*?(\- The `([a-zA-Z]+?)` \[(.+?)\]\(.+?\) was updated from `([\d|\.?]+?-?.*?\+?.*?)` to `([\d|\.?]+?-?.*?\+?.*?)`\.\\n?)")
             parsed_body = regexp.match(line)
-
             try:
                 # print(parsed_body.group(0))
                 # print(parsed_body.group(1))
@@ -183,53 +180,47 @@ class BundleUpdateIssueBodyParser(IssueBodyParser):
                 # print(parsed_body.group(3))   # @babel/parser
                 # print(parsed_body.group(4))   # 7.2.3
                 # print(parsed_body.group(5))   # 7.3.0
-
-                list_of_parsed_body.append({"issue_dependency_name": parsed_body.group(3),
-                                            "issue_dependency_type": parsed_body.group(2),
-                                            "issue_dependency_actual_version": parsed_body.group(4),
-                                            "issue_dependency_next_version": parsed_body.group(5),
-                                            "issue_dependency_bundle_name": monorepo_name,
-                                            "issue_body_parser": self.__class__.__name__})
+                list_of_parsed_body.append({
+                    "issue_dependency_name": parsed_body.group(3),
+                    "issue_dependency_type": parsed_body.group(2),
+                    "issue_dependency_actual_version": parsed_body.group(4),
+                    "issue_dependency_next_version": parsed_body.group(5),
+                    "issue_dependency_bundle_name": monorepo_name,
+                    "issue_body_parser": self.__class__.__name__
+                })
             except AttributeError as ae:
                 continue
-
-
         # TODO: check if "issue_dependency_type" can be parsed
         return list_of_parsed_body
 
 class BundleUpdate2IssueBodyParser(IssueBodyParser):
     def parse_issue_body(self, body):
         #regexp = re.compile("\\n## There have been updates to the \*(.*?)\* monorepo:\\n\\n \+ (\- The ([a-zA-Z]+?) \[(.+?)\]\(.+?\) was updated from `([\d|\.?]+?-?.*?\+?.*?)` to `([\d|\.?]+?-?.*?\+?.*?)`\.\\n)+?.*?")
-
         regexp = re.compile("\\n## There have been updates to the \*(.*?)\* monorepoundefined.*")
         parsed_body = regexp.match(body)
-
         monorepo_name = parsed_body.group(1)
         list_of_parsed_body = list()
-
         lines = body.split("\n")
         for line in lines:
             regexp = re.compile(".*?(\- The `([a-zA-Z]+?)` \[(.+?)\]\(.+?\) was updated from `([\d|\.?]+?-?.*?\+?.*?)` to `([\d|\.?]+?-?.*?\+?.*?)`\.\\n?)")
             parsed_body = regexp.match(line)
-
             try:
-                print(parsed_body.group(0))
-                print(parsed_body.group(1))
-                print(parsed_body.group(2))   # devDependency
-                print(parsed_body.group(3))   # @babel/parser
-                print(parsed_body.group(4))   # 7.2.3
-                print(parsed_body.group(5))   # 7.3.0
-
-                list_of_parsed_body.append({"issue_dependency_name": parsed_body.group(3),
-                                            "issue_dependency_type": parsed_body.group(2),
-                                            "issue_dependency_actual_version": parsed_body.group(4),
-                                            "issue_dependency_next_version": parsed_body.group(5),
-                                            "issue_dependency_bundle_name": monorepo_name,
-                                            "issue_body_parser": self.__class__.__name__})
+                # print(parsed_body.group(0))
+                # print(parsed_body.group(1))
+                # print(parsed_body.group(2))   # devDependency
+                # print(parsed_body.group(3))   # @babel/parser
+                # print(parsed_body.group(4))   # 7.2.3
+                # print(parsed_body.group(5))   # 7.3.0
+                list_of_parsed_body.append({
+                    "issue_dependency_name": parsed_body.group(3),
+                    "issue_dependency_type": parsed_body.group(2),
+                    "issue_dependency_actual_version": parsed_body.group(4),
+                    "issue_dependency_next_version": parsed_body.group(5),
+                    "issue_dependency_bundle_name": monorepo_name,
+                    "issue_body_parser": self.__class__.__name__
+                })
             except AttributeError as ae:
                 continue
-
-
         # TODO: check if "issue_dependency_type" can be parsed
         return list_of_parsed_body
 
@@ -273,12 +264,14 @@ class IssueBodyParserImpl():
                                         except AttributeError as e:
                                             print("Parsing error")
 
-        return [{"issue_dependency_name": None,
-                 "issue_dependency_type": None,
-                 "issue_dependency_actual_version": None,
-                 "issue_dependency_next_version": None,
-                 "issue_dependency_bundle_name": None,
-                 "issue_body_parser": None}]
+        return [{
+            "issue_dependency_name": None,
+            "issue_dependency_type": None,
+            "issue_dependency_actual_version": None,
+            "issue_dependency_next_version": None,
+            "issue_dependency_bundle_name": None,
+            "issue_body_parser": None
+        }]
 
 
 def fetch_events(issues_merged_path, issues_merged_file_name, suffix=prefix_date):
@@ -288,16 +281,12 @@ def fetch_events(issues_merged_path, issues_merged_file_name, suffix=prefix_date
     try:
         if not issues_merged_path.endswith("/"):
             issues_merged_path = issues_merged_path + "/"
-
         file_path = issues_merged_path + issues_merged_file_name
-
         with open(issues_merged_path + issues_merged_file_name) as json_file:
-
             try:
                 data = json.load(json_file)
             except ValueError as ve:
                 print("[FATAL ERROR] Not a valid json file '{}': {}".format(file_path, str(ve)))
-
             try:
                 for item in data['items']:
                     try:
@@ -308,212 +297,147 @@ def fetch_events(issues_merged_path, issues_merged_file_name, suffix=prefix_date
                         print(
                             "[ERROR] Item {} on file '{}' doesn't contain field '{}'. Continuing from next item.".format(
                                 str(item), file_path, str(ke)))
-
                         continue
-
                     success = False
-
                     while not success:
                         try:
                             events_url = item['events_url']
-
                             try:
                                 print("[REQUEST] {}".format(events_url))
-
-                                git_token = "b397ad46f242cc61ed9d76868465868228382c8c"
+                                git_token = MY_GIT_TOKEN
                                 headers = {'Authorization': 'token {}'.format(git_token)}
-
-                                events_request = requests.get(events_url,
-                                                              headers=headers)
-
+                                events_request = requests.get(events_url, headers=headers)
                                 if events_request.status_code == 200:
                                     events_json = events_request.json()
                                     out_json = dict()
-
                                     try:
                                         out_json.update({"issue_url": item['url']})
                                         out_json.update({"issue_id": item['id']})
                                         out_json.update({"items": events_json})
                                     except KeyError as ke:
                                         print("[ERROR] Item {} on file '{}' doesn't contain field '{}'. Continuing from next item.".format(file_path, str(item), str(ke)))
-
                                         success = True
                                         break
-
                                     with open(issues_merged_path + "[{}]events@{}.json".format(item['id'], suffix), 'w') as file:
                                         json.dump(out_json, file)
-
                             except requests.exceptions.ConnectionError as ce:
                                 print("[ERROR] Request to '{}' failed due to connection error on item {}: {}. Trying again in one minute".format(events_url, str(item), str(ce)))
-
                                 time.sleep(60)
                                 continue
                             except requests.exceptions.HTTPError as ce:
                                 print("[ERROR] Request to '{}' failed due to invalid HTTP response on item {}: {}. Continuing from next item.".format(events_url, str(item), str(ce)))
-
                                 success = True
                                 break
                             except requests.exceptions.Timeout as ce:
                                 print("[ERROR] Request to '{}' had a timeout on item {}: {}. Trying again in one minute.".format(events_url, str(item), str(ce)))
-
                                 time.sleep(60)
                                 continue
                         except KeyError as ke:
                             print("[ERROR] Item {} on file '{}' doesn't contain field '{}'. Continuing from next item.".format(file_path, str(item), str(ke)))
-
                             break
                         finally:
                             success = True
-
                             time.sleep(3)
             except KeyError as ke:
                 print("[FATAL ERROR] File '{}' doesn't contain field '{}'.".format(file_path, str(ke)))
-
-
     except FileNotFoundError as fnf:
         print("File {} not found.".format(file_path))
 
 
 def fetch_issues(search_file_path):
     time_now = datetime.datetime.now().strftime('%Y-%m-%d')
-
     # start_day = time_now
     # start_day = "2019-07-14" # this is the beginning date of the first data collection
     # start_day = "2020-09-04" # this is the beginning date of the second data collection
-
     week = datetime.datetime.strptime(start_day, "%Y-%m-%d")
     prior_week = week - datetime.timedelta(days=2)
-
     # end_day = datetime.datetime(2017, 1, 1) # this is the final date of the first data collection
     # end_day = datetime.datetime(2019, 7, 14) # this is the final date of the second data collection
-
     while week > end_day:
         created_1 = prior_week.strftime("%Y-%m-%d")
         created_2 = week.strftime("%Y-%m-%d")
         url = "https://api.github.com/search/issues?q=An+in-range+update+is+breaking+build+in:title+created:{}..{}&per_page=100&page=1".format(created_1, created_2)
-
         print("[REQUEST] " + url)
         #res = requests.get(url, headers={"Authorization": git_token})
-
-        git_token = "b397ad46f242cc61ed9d76868465868228382c8c"
+        git_token = MY_GIT_TOKEN
         headers = {'Authorization': 'token {}'.format(git_token)}
-
         res = requests.get(url, headers=headers)
         issues = res.json()
-
         if res.status_code == 200:
             while 'next' in res.links.keys():
                 time.sleep(3)
-
                 link_next = res.links['next']['url']
-
                 print("[REQUEST] " + link_next)
-
-                res_2 = requests.get(link_next,
-                                     headers=headers)
+                res_2 = requests.get(link_next, headers=headers)
                 # headers={"Authorization": git_token})
-
                 if res_2.status_code == 200:
                     issues_again = res_2.json()
-
                     items_list = issues['items']
                     items_list = items_list + issues_again['items']
-
                     issues.update({"items": items_list})
-
                     res = res_2
                 else:
                     print("Status code is {}. Retrying to retrieve contents of page".format(res_2.status_code))
-
             with open(search_file_path + "[{}]issues@{}.json".format(created_1, prefix_date), 'w') as outfile:
                 json.dump(issues, outfile)
-
         week = datetime.datetime.strptime(created_1, "%Y-%m-%d")
         prior_week = week - datetime.timedelta(days=2)
-
         time.sleep(3)
 
 
 def fetch_first_pull_request(search_file_path):
     time_now = datetime.datetime.now().strftime('%Y-%m-%d')
-
     # start_day = time_now
     # start_day = "2019-07-14"
-
     week = datetime.datetime.strptime(start_day, "%Y-%m-%d")
     prior_week = week - datetime.timedelta(days=2)
-
     # end_day = datetime.datetime(2017, 1, 1)
-
     while week > end_day:
-        git_token = "ac13ad953e5b38f0d67b0d2e875a6809dc24acf2"
-
+        git_token = MY_GIT_TOKEN
         created_1 = prior_week.strftime("%Y-%m-%d")
         created_2 = week.strftime("%Y-%m-%d")
         url = "https://api.github.com/search/issues?q=Update+dependencies+to+enable+Greenkeeper+in:title+created:{}..{}&per_page=100&page=1".format(created_1, created_2)
-
         print("[REQUEST] " + url)
-
-        git_token = "b397ad46f242cc61ed9d76868465868228382c8c"
+        git_token = MY_GIT_TOKEN
         headers = {'Authorization': 'token {}'.format(git_token)}
-
         res = requests.get(url, headers=headers)
         issues = res.json()
-
         if res.status_code == 200:
             while 'next' in res.links.keys():
                 time.sleep(3)
-
                 link_next = res.links['next']['url']
-
                 print("[REQUEST] " + link_next)
-
-                res_2 = requests.get(link_next,
-                                     headers=headers)
+                res_2 = requests.get(link_next, headers=headers)
                 # headers={"Authorization": git_token})
-
                 if res_2.status_code == 200:
                     issues_again = res_2.json()
-
                     items_list = issues['items']
                     items_list = items_list + issues_again['items']
-
                     issues.update({"items": items_list})
-
                     res = res_2
                 else:
                     print("Status code is {}. Retrying to retrieve contents of page".format(res_2.status_code))
-
             with open(search_file_path + "[{}]first_pull_request@{}.json".format(created_1, prefix_date), 'w') as outfile:
                 json.dump(issues, outfile)
-
         week = datetime.datetime.strptime(created_1, "%Y-%m-%d")
         prior_week = week - datetime.timedelta(days=2)
-
         time.sleep(3)
 
 def merge_issues_json_files(files_patch):
     def remove_duplicate(seq):
         seen = set()
         unique = list()
-
         for s in seq:
             i = s['url']
-
             if i not in seen:
                 unique.append(s)
-
             seen.add(i)
-
         return unique
-
 
     if not files_patch.endswith("/"):
         files_patch = files_patch + "/"
-
     # files = glob.glob(files_patch + "*issues@{}.json".format(prefix_date))
     files = glob.glob(files_patch + "issue_reports*.json")
-
     unique_json = {"items": list()}
     visited_issues = list()
     for file in files:
@@ -522,27 +446,19 @@ def merge_issues_json_files(files_patch):
                 data = json.load(f)
             except ValueError as ve:
                 print("[ERROR] Invalid JSON on file {}. Continuing from next file.".format(file))
-
             actual_items = unique_json["items"]
-
             try:
                 new_item = actual_items + data["items"]
-
                 # l = [{"a": 123, "b": 1234}, {"a": 321, "b": 1234}, {"a": 123, "b": 1234}]
-
                 # Remove duplicates
                 new_item_no_dup = remove_duplicate(new_item)
-
                 # s = set(tuple(d.items()) for d in new_item)
                 # d = [dict(t) for t in s]
                 # new_item_no_dup = [dict(t) for t in set(tuple(d.items()) for d in new_item)]
-
                 unique_json.update({"items": new_item_no_dup})
             except KeyError as ke:
                 print("[ERROR] File {} doesn't have field {}. Continuing from next file.".format(file, str(ke)))
-
                 continue
-
     with open(files_patch + "issues@{}-merge.json".format(prefix_date), "w") as f:
         json.dump(unique_json, f)
 
@@ -551,20 +467,14 @@ def merge_events_json_files(search_file_path, files_suffix="events@{}".format(pr
         files_patch = search_file_path + "/"
     else:
         files_patch = search_file_path
-
     files = glob.glob(files_patch + "*" + files_suffix + ".json")
-
     events = {"events": list()}
-
     for file in files:
         with open(file, "r") as f:
             events_json = json.load(f)
-
             events_list = events['events']
             events_list.append(events_json)
-
             events.update({"events": events_list})
-
     with open(search_file_path +  files_suffix + "-merged.json", "w") as f:
         json.dump(events, f)
 
@@ -573,9 +483,7 @@ def fetch_commits(events_merged_path, events_merged_file_name, suffix=prefix_dat
     try:
         if not events_merged_path.endswith("/"):
             events_merged_path = events_merged_path + "/"
-
         file_path = events_merged_path + events_merged_file_name
-
         fetched_commits = [f for f in listdir(events_merged_path) if isfile(join(events_merged_path, f))]
         fetched_commit_ids = set()
         for fetched_commit in fetched_commits:
@@ -585,28 +493,21 @@ def fetch_commits(events_merged_path, events_merged_file_name, suffix=prefix_dat
             except AttributeError as ae:
                 print("[WARNING] Couldn't get event id from file named " + fetched_commit)
                 continue
-
             fetched_commit_ids.add(fetched_commit_id)
-
         with open(file_path, "r") as json_file:
-
             try:
                 data = json.load(json_file)
             except ValueError as ve:
                 print("[FATAL ERROR] Not a valid json file '{}': {}".format(file_path, str(ve)))
-
         try:
             data = data['events']
-
             for items in data:
                 # TODO: check if item wasn't previously fetched
                 for item in items['items']:
                     if item['event'] in ("merge", "referenced") or item['commit_url'] is not None:
                         if item['commit_id'] in fetched_commit_ids:
                             continue
-
                         success = False
-
                         while not success:
                             try:
                                 commit_url = item['commit_url']
@@ -614,7 +515,7 @@ def fetch_commits(events_merged_path, events_merged_file_name, suffix=prefix_dat
                                 try:
                                     print("[REQUEST] {}".format(commit_url))
 
-                                    git_token = "b397ad46f242cc61ed9d76868465868228382c8c"
+                                    git_token = MY_GIT_TOKEN
                                     headers = {'Authorization': 'token {}'.format(git_token)}
 
                                     commits_request = requests.get(commit_url,
@@ -1105,7 +1006,7 @@ def fetch_package_names(search_file_path, merged_issues_file):
             try:
                 print("[REQUEST] {}".format(repo_url))
 
-                git_token = "b397ad46f242cc61ed9d76868465868228382c8c"
+                git_token = MY_GIT_TOKEN
                 headers = {'Authorization': 'token {}'.format(git_token)}
 
                 contents_request = requests.get(repo_url,
@@ -1257,7 +1158,7 @@ def fetch_comments(issues_merged_path, issues_merged_file_name, suffix=prefix_da
                             try:
                                 print("[REQUEST] {}".format(comments_url))
 
-                                git_token = "b397ad46f242cc61ed9d76868465868228382c8c"
+                                git_token = MY_GIT_TOKEN
                                 headers = {'Authorization': 'token {}'.format(git_token)}
 
                                 comments_request = requests.get(comments_url,
@@ -1346,14 +1247,12 @@ def merge_comments_json_files(search_file_path, files_suffix="comments@{}".forma
 
 def extract_repo_name_from_url(repo_url):
     m = re.match("(https://api.github.com/repos)/(.*?)/(.*?)$", repo_url.rstrip())
-
     return m.group(2), m.group(3)
 
 
 def request(url):
-    git_token = "b397ad46f242cc61ed9d76868465868228382c8c"
+    git_token = MY_GIT_TOKEN
     headers = {'Authorization': 'token {}'.format(git_token)}
-
     print("[REQUEST] {}".format(url))
     res = requests.get(url,
                        headers=headers)
@@ -1449,7 +1348,7 @@ def fetch_all_project_events(issues_merged_path, issues_merged_file_name, event=
                             #
                             # print("[REQUEST] {}/{}".format(repository_url, event))
                             #
-                            # git_token = "b397ad46f242cc61ed9d76868465868228382c8c"
+                            # git_token = MY_GIT_TOKEN
                             # headers = {'Authorization': 'token {}'.format(git_token)}
                             #
                             # events = requests.get(repository_url + "/{}".format(event),
@@ -1484,14 +1383,12 @@ def fetch_all_project_events(issues_merged_path, issues_merged_file_name, event=
                             print(
                                 "[ERROR] Request to '{}' failed due to connection error on item {}: {}. Trying again in one minute".format(
                                     repository_url, str(item), str(ce)))
-
                             time.sleep(60)
                             continue
                         except requests.exceptions.HTTPError as ce:
                             print(
                                 "[ERROR] Request to '{}' failed due to invalid HTTP response on item {}: {}. Continuing from next item.".format(
                                     repository_url, str(item), str(ce)))
-
                             success = True
                             break
                         except requests.exceptions.Timeout as ce:
@@ -1505,7 +1402,6 @@ def fetch_all_project_events(issues_merged_path, issues_merged_file_name, event=
                         print(
                             "[ERROR] Item {} on file '{}' doesn't contain field '{}'. Continuing from next item.".format(
                                 file_path, str(item), str(ke)))
-
                         break
             except KeyError as ke:
                 print("[FATAL ERROR] File '{}' doesn't contain field '{}'.".format(file_path, str(ke)))
