@@ -5,6 +5,8 @@ json
 .ipynb_checkpoints
 .idea
 repo-cloning/repos
+greenkeeper_data
+greenkeeper_data.tar.gz
 
 ~$*
 
