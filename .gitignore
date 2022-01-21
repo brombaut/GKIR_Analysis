@@ -7,7 +7,7 @@ json
 repo-cloning/repos
 greenkeeper_data
 greenkeeper_data.tar.gz
-
+*.tar.gz
 ~$*
 
 # Byte-compiled / optimized / DLL files
